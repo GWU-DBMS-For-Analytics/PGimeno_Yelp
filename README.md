@@ -1,10 +1,8 @@
-# PGimeno_Yelp
+#  Yelp Academic Dataset  Analysis
 
+The proposed final project will analyze Yelp's academic dataset (6GB) using data transformation concepts used in class with respect to relational databases. In particular the project will contain 4 main sections:
 
-# Project Sections
-
-1. Data Transformation and load into a relational schema for Sqlite and MySQL
-2. EDA on Yelp Business and User data using traditional SQL DML syntax
-3. NLP on Yelp user reviews 
-4. Alternative Analysis using ORM via SQLAlchemy
-
+ 1. Parsing large JSON files and DB transfer.
+ 2. EDA on Yelp Business and User data using SQL DML syntax.
+ 3. NLP on Yelp user reviews.
+ 4. Alternative Processing using ORM via SQL Alchemy
