@@ -5,7 +5,7 @@ This project will analyze Yelp's academic dataset (6GB) using data transformatio
 
  1. Parsing large JSON files and loading python objects into permanent storage (relational db)
  2. EDA on Yelp Business and user data to answer basic questions using SQL DML syntax.
- 3. Perform basic sentiment analysis by leverage freemium API's available on the web on Yelp user reviews.
+ 3. Perform basic sentiment analysis by leveraging freemium API's available on the web on Yelp user reviews.
  4. Run the same analysis via an ORM using SQL Alchemy
 
 
