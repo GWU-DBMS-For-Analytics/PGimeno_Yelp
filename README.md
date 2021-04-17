@@ -1,4 +1,5 @@
 #  Yelp Academic Dataset  Analysis
+by Paul Gimeno - 4/20/21
 
 The proposed final project will analyze Yelp's academic dataset (6GB) using data transformation concepts used in class with respect to relational databases. In particular the project will contain 4 main sections:
 
@@ -19,4 +20,48 @@ The dataset was provided by [Yelp through Kaggle](https://www.kaggle.com/yelp-da
 
 The files are joined and analyzed using the following relational schema below: 
 
-![Project Relational DB Schema](https://i.ibb.co/KzdMNLB/schema.png)
+![Project Relational Schema](https://i.ibb.co/KzdMNLB/schema.png)
+
+
+# Section 1: Loading JSON objects into SQLite tables 
+
+The project notebook with the full code can be [found here:](https://github.com/GWU-DBMS-For-Analytics/PGimeno_Yelp/blob/ffc088871ec8acc0c7f9112c74cc4cdcb0e63657/1%20-%20Data%20Transformation%20and%20Loading.ipynb)
+
+Through python's native JSON module and Pandas' json_normalize function, we can easily load json objects into a pandas dataframe, perform transformations on it and load them into a database table such as Sqlite.
+
+The following snippet shows one approach (see notebook for full implementation)
+ 
+
+    import json
+    import pandas as pd
+    with sqlite3.connect('yelp_project.db') as con:
+	    #read json file and assign to dataframe
+	    business = pd.read_json('business.json',line=True)
+	    
+	    #create a db table called business and insert/replace all columns/rows into the dataframe
+	    
+	    business.to_sql('business', con=con, if_exists='replace')
+
+	
+	    
+
+  
+
+# Section 2: Yelp Business EDA
+
+The goal of this section is to answer a few basic questions using SQL syntax
+**Question 1:** Which states have the most business listings, reviews and average stars?
+
+**Question 2:** Which of the top states have the highest average reviews, business count and stars?
+
+**Question 3:** In our chosen state, which city has the highest concentration of businesses and reviews?
+
+**Question 4:** Within this city, which are the top 10 most reviewed establishments and what are some of their attributes?
+
+**Question 5:** For the most popular restaurant in this city, who is a repeat user reviewer that is the most negative?
+
+**Question 6:** For this most negative reviewer in portland, where else does he spread his negativity?
+
+**Question 7:** For this most negative reviewer in portland, are all his reviews negative in general? 
+
+
