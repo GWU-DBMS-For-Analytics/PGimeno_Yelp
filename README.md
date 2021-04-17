@@ -1,12 +1,12 @@
 #  Yelp Academic Dataset  Analysis
 by Paul Gimeno - 4/20/21
 
-The proposed final project will analyze Yelp's academic dataset (6GB) using data transformation concepts used in class with respect to relational databases. In particular the project will contain 4 main sections:
+This project will analyze Yelp's academic dataset (6GB) using data transformation concepts used in class with respect to relational databases. It will cover the following topic areas:
 
- 1. Parsing large JSON files and DB transfer.
- 2. EDA on Yelp Business and User data using SQL DML syntax.
- 3. NLP on Yelp user reviews.
- 4. Alternative Processing using ORM via SQL Alchemy
+ 1. Parsing large JSON files and loading python objects into permanent storage (relational db)
+ 2. EDA on Yelp Business and user data to answer basic questions using SQL DML syntax.
+ 3. Perform basic sentiment analysis by leverage freemium API's available on the web on Yelp user reviews.
+ 4. Run the same analysis via an ORM using SQL Alchemy
 
 
 
@@ -20,7 +20,7 @@ The dataset was provided by [Yelp through Kaggle](https://www.kaggle.com/yelp-da
 
 The files are joined and analyzed using the following relational schema below: 
 
-![Project Relational Schema](https://i.ibb.co/KzdMNLB/schema.png)
+![Project Schema](https://i.ibb.co/KzdMNLB/schema.png)
 
 
 # Section 1: Loading JSON objects into SQLite tables 
@@ -33,6 +33,7 @@ The following snippet shows one approach (see notebook for full implementation)
  
 
     import json
+    import sqlite3
     import pandas as pd
     with sqlite3.connect('yelp_project.db') as con:
 	    #read json file and assign to dataframe
@@ -50,6 +51,7 @@ The following snippet shows one approach (see notebook for full implementation)
 # Section 2: Yelp Business EDA
 
 The goal of this section is to answer a few basic questions using SQL syntax
+
 **Question 1:** Which states have the most business listings, reviews and average stars?
 
 **Question 2:** Which of the top states have the highest average reviews, business count and stars?
@@ -61,6 +63,13 @@ The goal of this section is to answer a few basic questions using SQL syntax
 **Question 5:** For the most popular restaurant in this city, who is a repeat user reviewer that is the most negative?
 
 **Question 6:** For this most negative reviewer in portland, where else does he spread his negativity?
+
+
+# Section 3: Basic NLP using Google's Text Analysis API
+
+[Freemium API used in the project](https://rapidapi.com/insights-ml-insights-ml-default/api/google-text-analysis) 
+
+Notebook and code can be found here:
 
 **Question 7:** For this most negative reviewer in portland, are all his reviews negative in general? 
 
