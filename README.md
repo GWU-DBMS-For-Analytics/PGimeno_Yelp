@@ -5,7 +5,7 @@ This project will analyze Yelp's academic dataset (6GB) using data transformatio
 
  1. Parsing large JSON files and loading python objects into permanent storage (relational db)
  2. EDA on Yelp Business and user data to answer basic questions using SQL DML syntax.
- 3. Perform basic sentiment analysis by leverage freemium API's available on the web on Yelp user reviews.
+ 3. Perform basic sentiment analysis by leveraging freemium API's available on the web on Yelp user reviews.
  4. Run the same analysis via an ORM using SQL Alchemy
 
 
@@ -20,7 +20,7 @@ The dataset was provided by [Yelp through Kaggle](https://www.kaggle.com/yelp-da
 
 The files are joined and analyzed using the following relational schema below: 
 
-![Project Schema](https://i.ibb.co/KzdMNLB/schema.png)
+![enter image description here](https://i.ibb.co/KzdMNLB/schema.png)
 
 
 # Section 1: Loading JSON objects into SQLite tables 
@@ -50,19 +50,108 @@ The following snippet shows one approach (see notebook for full implementation)
 
 # Section 2: Yelp Business EDA
 
-The goal of this section is to answer a few basic questions using SQL syntax
+The goal of this section is to answer a few basic questions using SQL syntax. Using a helper function (as shown below) along with Pandas can produce clean intermediate results because we can work directly with DataFrames.
 
+Full code implementation can be viewed here
+
+    #helper sql  
+    
+    import pandas as pd
+    import sqlite3
+    
+    def run_query(sql):
+  
+    with sqlite3.connect('yelp.db') as con:
+        try:
+            df = pd.read_sql(sql, con=con)
+            return df
+        except Exception as bad:
+            print(bad)
+
+   
 **Question 1:** Which states have the most business listings, reviews and average stars?
 
-**Question 2:** Which of the top states have the highest average reviews, business count and stars?
+We can query states that have the most business listings and reviews. In this case, we are filtering for states with at least 10,000 businesses.
 
-**Question 3:** In our chosen state, which city has the highest concentration of businesses and reviews?
+    [in] sql = '''
+    SELECT distinct state, 
+    AVG(review_count) average_reviews, 
+    AVG(stars) average_stars, 
+    count(business_id) number_of_businesses 
+    FROM business 
+    GROUP BY state
+    HAVING count(business_id) > 10000
+    order by 3 desc '''
+    
+    [in] run_query(sql)
+    [out] 
+   
 
-**Question 4:** Within this city, which are the top 10 most reviewed establishments and what are some of their attributes?
+ ![result dataframe 1](https://i.ibb.co/6bwKxj0/EDA-most-states.png)
 
-**Question 5:** For the most popular restaurant in this city, who is a repeat user reviewer that is the most negative?
+Oregon appears to have the best average stars and among the top contenders for most business listings and so we'll arbitrarily choose the state of Oregon
 
-**Question 6:** For this most negative reviewer in portland, where else does he spread his negativity?
+**Question 2:** In the state of OR, which city has the highest concentration of businesses and reviews?
+
+    [in] sql = '''
+    SELECT distinct(city), 
+    state, 
+    count(business_id) num_businesses
+    from business
+    where state = 'OR'
+    GROUP BY city
+    ORDER BY 3 DESC
+    LIMIT 1 '''
+    [in] run_query(sql)
+    [out]
+![EDA-2-Portland](https://i.ibb.co/QJLxjRD/EDA-2-Portland.png)
+
+The result returns the top city of Portland
+
+**Question 3:** Within this city, which are the top 10 most reviewed establishments and what are some of their attributes?
+
+    [in] sql = '''
+    SELECT business_id, name, city, 
+    state, review_count, 
+    avg(stars) average_stars
+    FROM business
+    where state = 'OR' and city = 'Portland'
+    GROUP BY business_id
+    ORDER BY 5 DESC
+    LIMIT 10'''
+    
+    [in] run_query(sql)
+    [out]
+    
+
+![EDA-3](https://i.ibb.co/1nDSdrM/EDA-3-Top-In-Portland.png)
+
+For these 10 establishments, let's determine their attributes by joining the business table with the business attributes table
+
+    [in] sql = '''
+    SELECT * FROM business_attribute ba
+    INNER JOIN (SELECT business_id, name, review_count
+    from business 
+    where state = 'OR' and city = 'Portland'
+    ORDER BY 3 DESC
+    LIMIT 10) b on ba.business_id = b.business_id
+    '''
+    [in] run_query(sql)
+    [out] 
+
+		Our result returns a dataframe with business characteristics. Here are a few features that were obtained as an example.
+
+Best nights to visit among these establishments:
+![enter image description here](https://i.ibb.co/jy0jxrD/EDA-best-nights.png)
+Ambience among these establishments:
+![enter image description here](https://i.ibb.co/KXk9D9b/EDA-business-ambience.png)
+Type of meals served
+![enter image description here](https://i.ibb.co/DDTnSzk/EDA-Good-For-Meal.png)
+    
+
+**Question 4:** For the most popular restaurant in this city, who is a repeat user reviewer that is the most negative?
+
+**Question 5:** For this most negative reviewer in portland, where else does he spread his negativity?
 
 
 # Section 3: Basic NLP using Google's Text Analysis API
