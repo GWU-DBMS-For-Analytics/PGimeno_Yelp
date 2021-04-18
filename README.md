@@ -61,12 +61,12 @@ Full code implementation can be viewed here
     
     def run_query(sql):
   
-    with sqlite3.connect('yelp.db') as con:
-        try:
-            df = pd.read_sql(sql, con=con)
-            return df
-        except Exception as bad:
-            print(bad)
+	    with sqlite3.connect('yelp.db') as con:
+	        try:
+	            df = pd.read_sql(sql, con=con)
+	            return df
+	        except Exception as bad:
+	            print(bad)
 
    
 **Question 1:** Which states have the most business listings, reviews and average stars?
@@ -139,7 +139,8 @@ For these 10 establishments, let's determine their attributes by joining the bus
     [in] run_query(sql)
     [out] 
 
-		Our result returns a dataframe with business characteristics. Here are a few features that were obtained as an example.
+
+Our result returns a dataframe with business characteristics. Here are a few features that were obtained as an example.
 
 Best nights to visit among these establishments:
 ![enter image description here](https://i.ibb.co/jy0jxrD/EDA-best-nights.png)
@@ -151,15 +152,79 @@ Type of meals served
 
 **Question 4:** For the most popular restaurant in this city, who is a repeat user reviewer that is the most negative?
 
-**Question 5:** For this most negative reviewer in portland, where else does he spread his negativity?
+    [in] sql = '''
+    SELECT r.user_id, u.name username, r.business_id,
+    COUNT(r.review_id) num_reviews, AVG(r.stars) avg_rating
+    FROM reviews r
+    INNER JOIN users u on r.user_id = u.user_id
+    WHERE r.business_id = '4CxF8c3MB7VAdY8zFb2cZQ'
+    GROUP BY r.user_id
+    HAVING COUNT(r.review_id) > 1
+    ORDER by 4 desc, 3 asc
+    LIMIT 5'''
+    
+    [in] run_query(sql)
+![enter image description here](https://i.ibb.co/dr65jM1/EDA-mostnegative-username.png)
 
+As we can see, username David gave the most review and the most negative review (on average) from our result set
+
+**Question 5:** For this most negative reviewer in portland,  does David spread his negativity elsewhere?
+
+    [in] sql = '''
+    SELECT avg(r.stars) avg_stars, count(r.review_id)
+    total_review_count
+    FROM reviews r
+    WHERE r.user_id = 'Q2u4PQ5_aMBAQtyX19C1Iw'
+    and r.business_id != '4CxF8c3MB7VAdY8zFb2cZQ'
+    '''
+    [in] run_query(sql)
+    
+![enter image description here](https://i.ibb.co/br1rTH9/EDA-David-Avg.png)
+
+Based on his reviews elsewhere, it does not seem like David is the negative reviewer in general. Can we quantify his sentiment to see if his average stars correlate with his overall sentiment?
 
 # Section 3: Basic NLP using Google's Text Analysis API
 
 [Freemium API used in the project](https://rapidapi.com/insights-ml-insights-ml-default/api/google-text-analysis) 
 
-Notebook and code can be found here:
 
-**Question 7:** For this most negative reviewer in portland, are all his reviews negative in general? 
+**Question 7:** What is David's tone and sentiment in most of his reviews?
+
+To answer this question and estimate David's overall sentiment, we can analyze all of his reviews using natural language processing. In particular, we can utilize publically accessible, pre-trained sentiment analyzer which can score David's overall sentiment from -1 (negative) to +1(positive) with 0 as neutral.
+
+The sentiment function i used is shown below, it's a simple POST request which utilize python's native requests library
+
+    def add_sentiment_score(text):
+	    url = "https://google-text-analysis.p.rapidapi.com/AnalyzingSentiment"
+	    
+	    #remove quotes in the request string
+	    text = text.replace('"',"")	    
+	    
+	    print(text)
+	    payload = "{\r\"message\": \"" + text + "\"\r}"
+	    headers = {
+	        'content-type': "application/json",
+	        'x-rapidapi-key': TEXT_API_KEY,
+	        'x-rapidapi-host': "google-text-analysis.p.rapidapi.com"
+	        }
+
+	    response = requests.request("POST", url, data=payload, headers=headers)
+
+	    resp = response.text
+	    try:
+	        score = json.loads(resp)['documentSentiment']['score']
+	        print(score)
+	        
+	        #api throws exceptions when the 1 request per second rule is broken
+	        time.sleep(5)
+	        return score
+	        	    
+	    except Exception as e: 
+	        print(e)
 
 
+
+Partial results of this processing can be appended to a dataframe as shown below. As we can see, it does a really good approximation
+![enter image description here](https://i.ibb.co/jGbR1Dx/david-nlp-1.png)
+
+When we look at David's mean sentiment score, he averages at .557 which is fairly positive. Therefore, we can conclude that he is not a habitual bad reviewer.
